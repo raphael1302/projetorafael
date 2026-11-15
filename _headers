@@ -1,0 +1,11 @@
+# Cabeçalhos do Cloudflare Pages para todas as páginas
+/*
+  # libera a câmera para o próprio site (leitor ao vivo) e mais ninguém
+  Permissions-Policy: camera=(self), microphone=(), geolocation=()
+  # impede que o sistema seja exibido dentro de outra página (o que bloquearia a câmera e exporia os dados)
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: same-origin
+  # sempre busca a versão mais nova do sistema
+  Cache-Control: no-cache

@@ -3,61 +3,63 @@
 Sistema de **compras e almoxarifado** da Binho Transportes (protótipo funcional), com publicação automática
 do site e geração dos apps de **Android** e **iPhone** a partir do mesmo arquivo.
 
-> **Mantenha este repositório PRIVADO.** O sistema traz dados reais dos fornecedores exportados do SSW
-> (CPFs, contas bancárias, chaves PIX) e a chave de assinatura do app Android.
+A página inicial é o **`index.html` da raiz**: é ele que abre no GitHub Pages, no Cloudflare Pages e dentro dos apps.
 
 ## O que tem aqui
 
 ```
 compras-binho/
-├── site/
-│   ├── index.html            ← o sistema inteiro (um único arquivo)
-│   ├── teste-camera.html     ← teste rápido da câmera ao vivo
-│   └── _headers              ← libera a câmera e protege o site (Cloudflare Pages)
+├── index.html                ← o sistema inteiro (página inicial)
+├── teste-camera.html         ← teste rápido da câmera ao vivo
+├── _headers                  ← cabeçalhos para o Cloudflare Pages (libera a câmera, protege o site)
+├── .nojekyll                 ← o GitHub Pages entrega os arquivos como estão
 ├── apps/
 │   ├── android/              ← app Android (WebView com câmera liberada)
 │   └── ios/                  ← app iPhone (WebView, TestFlight)
-├── docs/
-│   ├── PUBLICAR-SITE.md      ← publicar o site com login (Cloudflare Pages + Access)
-│   ├── GUIA-ANDROID.md       ← gerar e instalar o APK
-│   └── GUIA-IPHONE.md        ← conta Apple, TestFlight
+├── docs/                     ← guias: publicar o site, Android, iPhone
 ├── scripts/atualizar-sistema.sh
 └── .github/workflows/
-    ├── site-cloudflare.yml   ← publica o site a cada envio
-    ├── android-apk.yml       ← gera o APK a cada envio
-    └── ios-testflight.yml    ← compila o app iPhone e envia ao TestFlight (manual)
+    ├── github-pages.yml      ← publica o index.html no GitHub Pages
+    ├── site-cloudflare.yml   ← alternativa: Cloudflare Pages com login
+    ├── android-apk.yml       ← gera o APK
+    └── ios-testflight.yml    ← app iPhone / TestFlight
 ```
 
-`site/index.html` é a fonte única: os workflows copiam esse arquivo para dentro dos apps na hora do build.
+Os workflows de site publicam **só** `index.html` e `teste-camera.html`: as pastas dos apps e os guias nunca vão para o ar.
+A chave de assinatura do Android **não** está no repositório: ela vem numa pasta separada e entra como segredo do GitHub.
 
-## Passo 1 — Colocar no GitHub (sem linha de comando)
+## Passo 1 — Colocar no GitHub
 
-O jeito mais fácil é o **GitHub Desktop** (Windows ou Mac):
+1. Instale o **GitHub Desktop** (<https://desktop.github.com>).
+2. Descompacte o pacote. Guarde a pasta **`chave-android-NAO-ENVIAR-AO-GITHUB`** em local seguro e **não** a coloque no repositório.
+3. No GitHub Desktop: **File > Add local repository**, escolha a pasta `compras-binho`, confirme **create a repository** e depois **Publish repository**.
 
-1. Crie uma conta em <https://github.com> e instale o **GitHub Desktop** (<https://desktop.github.com>).
-2. Descompacte este pacote. No GitHub Desktop: **File > Add local repository**, escolha a pasta `compras-binho`
-   e, quando ele avisar que não é um repositório, clique em **create a repository**.
-3. Clique em **Publish repository**, deixe marcado **Keep this code private** e confirme.
+Pelo site também funciona (**uploading an existing file**), mas confira se as pastas ocultas `.github` e o arquivo `.nojekyll` foram junto.
 
-Pelo site também funciona (**New repository > Private > uploading an existing file**, arrastando o conteúdo da pasta),
-mas confira se a pasta oculta `.github` foi junto: sem ela os workflows não aparecem na aba **Actions**.
-No Windows, ative "Itens ocultos" no Explorador de Arquivos antes de arrastar.
+## Passo 2 — Página inicial no GitHub Pages
 
-## Passo 2 — Ativar o que você precisa
+1. No repositório: **Settings > Pages > Build and deployment > Source: GitHub Actions**.
+2. Aba **Actions > Site - publicar no GitHub Pages > Run workflow** (depois roda sozinho a cada mudança no `index.html`).
+3. O endereço aparece na execução e em **Settings > Pages**, no formato `https://SEU-USUARIO.github.io/compras-binho/`.
+4. No celular, abra esse endereço direto no **Chrome** ou no **Safari**: a câmera ao vivo funciona, porque o GitHub Pages é https e não exibe o sistema dentro de outra página.
 
-| Quero | Faça | Precisa de |
+> **Antes de publicar, leia:** no plano gratuito, o GitHub Pages só funciona com **repositório público**, e o site
+> fica aberto para qualquer pessoa com o link. O `index.html` traz os dados exportados do SSW
+> (CPFs, contas bancárias e chaves PIX de 16.248 fornecedores). Publicando assim, esses dados ficam públicos
+> no repositório e no site. Para manter os dados protegidos, use o repositório **privado** com o
+> **Cloudflare Pages com login** ([docs/PUBLICAR-SITE.md](docs/PUBLICAR-SITE.md)), que também é gratuito.
+
+## Passo 3 — Apps
+
+| App | Guia | Precisa de |
 |---|---|---|
-| Usar no navegador do celular, com câmera ao vivo | [docs/PUBLICAR-SITE.md](docs/PUBLICAR-SITE.md) | Conta gratuita na Cloudflare |
-| App Android com câmera liberada | [docs/GUIA-ANDROID.md](docs/GUIA-ANDROID.md) | Nada além do GitHub |
-| App iPhone | [docs/GUIA-IPHONE.md](docs/GUIA-IPHONE.md) | Conta Apple Developer (US$ 99/ano) |
-
-O workflow do Android roda sozinho depois do primeiro envio. O do site espera os segredos da Cloudflare;
-até lá ele aparece com erro na aba Actions, avisando quais segredos faltam.
+| Android (APK, sem loja) | [docs/GUIA-ANDROID.md](docs/GUIA-ANDROID.md) | Segredos da chave (pasta separada) |
+| iPhone (TestFlight) | [docs/GUIA-IPHONE.md](docs/GUIA-IPHONE.md) | Conta Apple Developer (US$ 99/ano) |
 
 ## Atualizar o sistema
 
-1. Substitua `site/index.html` pela versão nova (ou `./scripts/atualizar-sistema.sh caminho/sistema-compras.html`).
-2. No GitHub Desktop: escreva um resumo da mudança, **Commit to main** e **Push origin**.
+1. Substitua o `index.html` da raiz pela versão nova (ou `./scripts/atualizar-sistema.sh caminho/sistema-compras.html`).
+2. GitHub Desktop: **Commit to main** e **Push origin**.
 3. Automático: o site é republicado e um APK novo é gerado. Para o iPhone, rode o workflow do TestFlight.
 
 ## Limites do protótipo

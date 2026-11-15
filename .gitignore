@@ -9,8 +9,12 @@ apps/ios/*.xcodeproj/
 apps/ios/build/
 apps/ios/DerivedData/
 apps/ios/ComprasBinho/Web/index.html
-# chaves da Apple nunca vão para o repositório
+# chaves nunca vão para o repositório
 *.p8
+*.jks
+*.keystore
+chave-android-NAO-ENVIAR-AO-GITHUB/
+_site/
 # sistemas
 .DS_Store
 Thumbs.db

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Teste da câmera - Compras Binho</title>
+<style>
+  :root{color-scheme:light dark}
+  body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:#16233A;color:#fff;padding:16px env(safe-area-inset-right) 24px env(safe-area-inset-left)}
+  h1{font-size:20px;margin:4px 0 6px}
+  p{margin:0 0 12px;color:#c9d3e0;font-size:14px}
+  button{font:inherit;font-weight:600;font-size:17px;width:100%;min-height:52px;border:0;border-radius:10px;background:#E3A21A;color:#16233A;margin:6px 0}
+  video{width:100%;aspect-ratio:4/3;background:#000;border-radius:10px;object-fit:cover;margin-top:8px;display:none}
+  #res{margin-top:12px;padding:12px;border-radius:10px;font-weight:700;display:none}
+  #res.ok{display:block;background:#173527;color:#7DDBA3}
+  #res.erro{display:block;background:#3A1C1A;color:#FF9D93}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden}
+  td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top}
+  td:first-child{color:#c9d3e0;width:45%}
+  .ok{color:#7DDBA3}.nao{color:#FF9D93}
+</style>
+</head>
+<body>
+  <h1>Teste da câmera ao vivo</h1>
+  <p>Abra este arquivo pelo mesmo link e no mesmo navegador em que usa o sistema. Toque no botão e, se o navegador perguntar, toque em Permitir.</p>
+  <button id="testar">Testar câmera ao vivo</button>
+  <video id="video" playsinline muted autoplay></video>
+  <div id="res" role="status"></div>
+  <table id="diag"></table>
+  <p style="margin-top:12px">Tire um print desta tela (com o resultado) e envie.</p>
+<script>
+const $ = s => document.querySelector(s);
+const ua = navigator.userAgent;
+const emMoldura = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+const politica = (() => { try { const p = document.permissionsPolicy || document.featurePolicy; return p ? (p.allowsFeature('camera') ? 'permitida' : 'BLOQUEADA') : 'não informado'; } catch (e) { return 'não informado'; } })();
+async function diagnostico(erro){
+  let perm = 'não informado';
+  try { const p = await navigator.permissions?.query({name:'camera'}); if (p) perm = {granted:'liberada', denied:'NEGADA', prompt:'vai perguntar'}[p.state] || p.state; } catch (e) {}
+  const linhas = [
+    ['Endereço', location.href.slice(0, 80)],
+    ['Endereço seguro (https)', window.isSecureContext ? 'sim' : 'NÃO'],
+    ['Aberto dentro de outra página (moldura)', emMoldura ? 'SIM' : 'não'],
+    ['Câmera permitida pela página', politica],
+    ['Acesso à câmera no navegador', navigator.mediaDevices?.getUserMedia ? 'disponível' : 'INDISPONÍVEL'],
+    ['Permissão da câmera', perm],
+    ['Navegador', ua.slice(0, 160)],
+    ...(erro ? [['Erro', `${erro.name || ''}: ${erro.message || erro}`]] : [])
+  ];
+  $('#diag').innerHTML = linhas.map(([k, v]) => `<tr><td>${k}</td><td class="${/NÃO|SIM|NEGADA|BLOQUEADA|INDISPONÍVEL/.test(v) && k !== 'Navegador' ? 'nao' : ''}">${String(v).replace(/</g, '&lt;')}</td></tr>`).join('');
+}
+$('#testar').onclick = async () => {
+  const res = $('#res'); res.className = ''; res.textContent = '';
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false});
+    const v = $('#video'); v.srcObject = stream; v.style.display = 'block'; await v.play().catch(() => {});
+    res.className = 'ok'; res.textContent = 'Câmera ao vivo funcionando neste navegador e neste link.';
+    diagnostico();
+  } catch (e) {
+    res.className = 'erro';
+    res.textContent = emMoldura ? 'Bloqueado: a página está dentro de outra (moldura) que não libera a câmera. Abra o arquivo direto, numa aba própria.'
+      : /NotAllowed/.test(e.name) ? 'Bloqueado: a permissão da câmera está negada para este site ou para o navegador.'
+      : /NotFound/.test(e.name) ? 'Nenhuma câmera encontrada.' : /NotReadable/.test(e.name) ? 'A câmera está em uso por outro app. Feche-o e tente de novo.'
+      : 'Não foi possível abrir a câmera.';
+    diagnostico(e);
+  }
+};
+diagnostico();
+</script>
+</body>
+</html>
